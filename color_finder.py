@@ -50,7 +50,9 @@ map_color_to_light = {
 'green' : cozmo.lights.green_light, 
 'yellow' : Light(Color(name='yellow', rgb = (255, 255, 0))), 
 'blue' : cozmo.lights.blue_light, 
-'red' : cozmo.lights.red_light
+'red' : cozmo.lights.red_light,
+'purple' : Light(Color(name='purple', rgb = (128, 0, 128))),
+'orange' : Light(Color(name='orange', rgb = (255, 165, 0)))
 }
 
 # hsv_color_ranges (dict): map of color names to regions in HSV space.
@@ -70,7 +72,9 @@ hsv_color_ranges = {
 'blue' : (180.0, 245.0, 0.5, 1.0, 0.5, 1.0), 
 'yellow' : (40.0, 80.0, 0.5, 1.0, 0.5, 1.0), 
 'white' : (0.0, 360.0, 0.0, 0.2, 0.9, 1.0), 
-'black' : (0.0, 360.0, 0.0, 0.1, 0.0, 0.2)
+'black' : (0.0, 360.0, 0.0, 0.1, 0.0, 0.2),
+'purple' : (248.0, 280, 0.5, 1.0, 0.25, 1.0),
+'orange' : (21.0, 39.0, 0.5, 1.0, 0.5, 1.0)
 }
 
 def hsv_color_distance_sqr(color, color_range):
@@ -178,7 +182,7 @@ def rgb_to_hsv(r, g, b):
             s = delta / max_normalized_val
     return (h, s, v)
 
-POSSIBLE_COLORS_TO_FIND = ['green', 'yellow', 'blue', 'red']
+POSSIBLE_COLORS_TO_FIND = ['green', 'yellow', 'blue', 'red', 'purple', 'orange']
 
 LOOK_AROUND_STATE = 'look_around'
 FOUND_COLOR_STATE = 'found_color'
@@ -391,8 +395,6 @@ class ColorFinder(cozmo.annotate.Annotator):
             self.drive_toward_color_blob()
 
 
-
-
     def moved_too_far_from_center(self, amount_to_move_head, amount_to_rotate):
         '''Decides whether the center of the blob is too far from the center of Cozmo's view.
 
@@ -493,9 +495,7 @@ class ColorFinder(cozmo.annotate.Annotator):
         self.white_balance_cube = self.robot.world.get_light_cube(cozmo.objects.LightCube3Id)
         return not (self.color_selector_cube == None or self.grid_cube == None or self.white_balance_cube == None)
 
-    async def run(self) -> object:
-
-
+    async def run(self):
 
         '''Program runs until typing CRTL+C into Terminal/Command Prompt, 
         or by closing the viewer window.
@@ -520,7 +520,6 @@ class ColorFinder(cozmo.annotate.Annotator):
                 self.state = DRIVING_STATE
             self.amount_turned_recently = radians(0)
 
-        self.robot.abort_all_actions()
 
 
 class BlobDetector():

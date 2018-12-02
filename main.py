@@ -8,70 +8,98 @@ from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
 import color_finder
 import functools
 import sys
+import random
 
 
-async def test_cozmo_program(robot: cozmo.robot.Robot):
-    playerOne = None
-    playerTwo = None
-    searching = True
-
-# Determine number of players between 1 and 2
-
-    cube1 = robot.world.get_light_cube(LightCube1Id)  # looks like a paperclip
-    cube2 = robot.world.get_light_cube(LightCube2Id)  # looks like a lamp / heart
-
-    '''
-    cube1 = robot.world.wait_for_observed_light_cube(timeout=60)
-    cube2 = robot.world.wait_for_observed_light_cube(timeout=60)
 '''
+color_list order is in order of colorwheel going clockwise
+'''
+color_list = ["yellow", "green", "blue", "purple", "red", "orange"]
+primary_color_list = ['yellow', 'blue', 'red']
+secondary_color_list = ['green', 'purple', 'orange']
 
+'''
+game_selector = 0 - Cozmo provides two primary colors and user displays 1 secondary color in response
+game_selector = 1 - Cozmo provides one primary or secondary color and user days complimentary color according to color
+wheel
+'''
+game_selector = 1
 
-    cube1.set_lights(cozmo.lights.red_light)
-
-
-    cube1.set_lights(cozmo.lights.red_light)
-    cube2.set_lights(cozmo.lights.green_light)
-
-    while(searching):
-
-        try:
-            if ((await cube1.wait_for_tap(timeout=3)) and (await cube2.wait_for_tap(timeout=3))):
-                playerOne = True
-                playerTwo = True
-
-        except asyncio.TimeoutError:
-            playerOne = True
-            playerTwo = False
-            searching = False
-
-        if playerOne and playerTwo:
-            searching = False
-
-    print(playerOne)
-    print(playerTwo)
+# game_selector = random.randint(0, 1)
 
 
 
-# Cozmo to introduce himself and ask for children's names (Stretch Goal)
+async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
 # Cozmo speaks a color
-    await robot.say_text("Purple").wait_for_completed()
+    index = random.randint(0, 5)
+    correct_color_to_find = (index + 3) % len(color_list)
+
+    print(color_list[correct_color_to_find])
+
+    await robot.say_text("What color is opposite of " + color_list[index] ).wait_for_completed()
+
+    color_finder_game = color_finder.ColorFinder(robot, color_list[correct_color_to_find])
+
+    await color_finder_game.run()
+
+
+
+
+
+
+async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
+    colors_not_different = True
+    color_to_pass = ""
+
+    primary_color_1_selected_index = random.randint(0, 2)
+
+    while colors_not_different:
+        primary_color_2_selected_index = random.randint(0, 2)
+        if primary_color_1_selected_index is not primary_color_2_selected_index:
+            colors_not_different = False
+
+    # print(primary_color_1_selected_index)
+    # print(primary_color_2_selected_index)
+
+    correct_color_to_find = primary_color_1_selected_index + primary_color_2_selected_index
+    await robot.say_text("What color is made by " + primary_color_list[primary_color_1_selected_index] +
+                         " and" + primary_color_list[primary_color_2_selected_index]).wait_for_completed()
+
+    color_finder_game = color_finder.ColorFinder(robot, color_list[correct_color_to_find])
+
+    await color_finder_game.run()
+
+
+    if correct_color_to_find == 1:
+        color_to_pass = "Green"
+    elif correct_color_to_find == 2:
+        color_to_pass = "orange"
+    else:
+        color_to_pass = "purple"
+
+
+    print(color_to_pass)
+    print(correct_color_to_find)
+
+
+
+
+
+
+
+
+
+
+
 
 # Cozmo waits and looks for 1 of 2 colors
-    colorFinder1 = color_finder.ColorFinder(robot, 'red')
-
-
-    await colorFinder1.run()
-    print("returning to main")
-    await robot.say_text("I found red").wait_for_completed()
 
 
 
-    colorFinder2 = color_finder.ColorFinder(robot, 'yellow')
-    await colorFinder2.run()
+    # await colorFinder2.run()
 
-    print("returning to main")
-    await robot.say_text("I found yellow").wait_for_completed()
+   # await robot.say_text("I found yellow").wait_for_completed()
 
 
 # modify color_finder to search for specific colors
@@ -82,4 +110,8 @@ async def test_cozmo_program(robot: cozmo.robot.Robot):
 # When correct color detected, deliver a cube to the child with correct color
 # When both colors are detected, Cozmo congratulates the players, speaks their names and preforms a dance
 
-cozmo.run_program(test_cozmo_program, use_viewer = True)
+# cozmo.run_program(gameOne_cozmo_program, use_viewer = True)
+
+
+if game_selector == 1:
+    cozmo.run_program(gameTwo_cozmo_program, use_viewer=True)
