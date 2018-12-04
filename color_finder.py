@@ -28,6 +28,7 @@ import functools
 import math
 import numpy
 import sys
+import random
 
 import cozmo
 
@@ -73,7 +74,7 @@ hsv_color_ranges = {
 'yellow' : (40.0, 80.0, 0.5, 1.0, 0.5, 1.0), 
 'white' : (0.0, 360.0, 0.0, 0.2, 0.9, 1.0), 
 'black' : (0.0, 360.0, 0.0, 0.1, 0.0, 0.2),
-'purple' : (248.0, 280, 0.5, 1.0, 0.25, 1.0),
+'purple' : (248.0, 280, 0.5, 1.0, 0.5, 1.0),
 'orange' : (21.0, 39.0, 0.5, 1.0, 0.5, 1.0)
 }
 
@@ -280,6 +281,16 @@ class ColorFinder(cozmo.annotate.Annotator):
             cozmo.annotate.add_polygon_to_image(image, points_seq, 1.0, 'black', 'gold')
 
     def on_cube_tap(self, evt, obj, **kwargs):
+        randomIndex = random.randint(0, 3)
+        print(randomIndex)
+        yellowHints = ["A Banana", "A Schoolbus", "A bumblebee", "A Lemon"]
+        redHints = ["An Apple", "A Cardinal", "A Firetruck", "A Stop Sign"]
+        blueHints = ["The Sky", "Water", "Cookie Monster", "Dory"]
+        purpleHints = ["A grape", "A plum", "Barney", "Twinky Winky"]
+        greenHints = ["A Four leaf Clovor", "Broccoli yum", "A Frog", "A Lime"]
+        orangeHints = ["Cheetos", "A Goldfish", "Nemo", "A Carrort"]
+
+
         '''The blinking white cube switches the viewer between normal mode and pixel mode.
         The other illuminated cube toggles self.color_to_find.       
         '''    
@@ -288,7 +299,25 @@ class ColorFinder(cozmo.annotate.Annotator):
         elif obj.object_id == self.grid_cube.object_id:
             self.robot.world.image_annotator.annotation_enabled = not self.robot.world.image_annotator.annotation_enabled
         elif obj.object_id == self.white_balance_cube.object_id:
-            self.white_balance()
+
+            print("hint cube tapped")
+            self.robot.abort_all_actions()
+            if self.color_to_find == "yellow":
+                self.robot.say_text(yellowHints[randomIndex])
+            elif self.color_to_find == "red":
+                self.robot.say_text(redHints[randomIndex])
+            elif self.color_to_find == "blue":
+                self.robot.say_text(blueHints[randomIndex])
+            elif self.color_to_find == "purple":
+                self.robot.say_text(purpleHints[randomIndex])
+            elif self.color_to_find == "orange":
+                self.robot.say_text(orangeHints[randomIndex])
+            else:
+                self.robot.say_text(greenHints[randomIndex])
+
+            self.start_lookaround()
+
+            #self.white_balance()
 
     def toggle_color_to_find(self):
         '''Sets self.color_to_find to the next color in POSSIBLE_COLORS_TO_FIND.'''
@@ -323,9 +352,13 @@ class ColorFinder(cozmo.annotate.Annotator):
             self.abort_actions(self.drive_action)
             self.state = LOOK_AROUND_STATE
 
-    def white_balance(self):
-        image = self.robot.world.latest_image.raw_image
-        self.adjustment = ImageStat.Stat(image).mean
+    async def white_balance(self):
+        print("hint cube tapped")
+        self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
+        self.look_around_behavior = False
+        await self.robot.say_text("testing").wait_for_completed()
+        #image = self.robot.world.latest_image.raw_image
+        #self.adjustment = ImageStat.Stat(image).mean
 
     def update_pixel_matrix(self, downsized_image):
         '''Updates self.pixel_matrix with the colors from the current camera view.

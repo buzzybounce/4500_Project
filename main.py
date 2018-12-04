@@ -38,7 +38,7 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
     print(color_list[correct_color_to_find])
 
-    await robot.say_text("What color is opposite of " + color_list[index] ).wait_for_completed()
+    await robot.say_text("What color is opposite of " + color_list[index]).wait_for_completed()
 
     color_finder_game = color_finder.ColorFinder(robot, color_list[correct_color_to_find])
 
@@ -65,8 +65,8 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
         if primary_color_1_selected_index is not primary_color_2_selected_index:
             colors_not_different = False
 
-    # print(primary_color_1_selected_index)
-    # print(primary_color_2_selected_index)
+    print(primary_color_1_selected_index)
+    print(primary_color_2_selected_index)
 
 
     # selects the color that cozmo will look for
@@ -86,7 +86,7 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
 
     # declare the object color)_finder_game
     # ARGS - robot, and array color_list and index correct_color_to_find
-    color_finder_game = color_finder.ColorFinder(robot, color_list[correct_color_to_find])
+    color_finder_game = color_finder.ColorFinder(robot, secondary_color_list[correct_color_to_find])
 
 
     # run the color_finder_object
@@ -101,10 +101,10 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
         color_to_pass = "purple"
 
 
-    # print(color_to_pass)
-    # print(correct_color_to_find)
+    print(color_to_pass)
+    print(correct_color_to_find)
 
-    await robot.say_text(color_to_pass + "is correct!  Great job!").wait_for_completed()
+    # await robot.say_text(color_to_pass + "is correct!  Great job!").wait_for_completed()
 
 
 # modify color_finder to search for specific colors
