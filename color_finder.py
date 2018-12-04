@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+# IMPORTANT - THIS FILE IS ORIGINALLY PROVIDED BY ANKI AS PART OF THE STANDARD SDK.  MODIFICATIONS MADE BY
+# TO FUNCTION WITH THIS PROJECT.  CHANGES MADE DOCUMENTED IN CODE BELOW IS RELEVANT AREAS.
+
+
 '''Cozmo looks around and drives after colors.
 
 Place a tennis ball near Cozmo and see if he can go play with it!
@@ -47,6 +52,11 @@ ENABLE_COLOR_BALANCING = True
 # map_color_to_light (dict): maps each color name with its cozmo.lights.Light value.
 # Red, green, and blue lights are already defined as constants in lights.py, 
 # but we need to define our own custom Light for yellow.
+
+
+
+# MODIFICATION FROM ORIGINAL SDK - Purple and Orange added.  Lights on cubes also change according to these values.
+
 map_color_to_light = {
 'green' : cozmo.lights.green_light, 
 'yellow' : Light(Color(name='yellow', rgb = (255, 255, 0))), 
@@ -66,6 +76,9 @@ map_color_to_light = {
 # will show that (88.0, 0.4, 0.9) is closest to the 'green' region.
 
 
+# MODIFICATION FROM ORIGINAL SDK - Purple and Orange added.  Necessary to determine 6 point HSV values.  Modifications
+# to these values will affect how Cozmo perceives colors.  Use caution when modifying and test with grid view during
+# game execution.
 
 hsv_color_ranges = {
 'red' : (-20.0, 20.0, 0.5, 1.0, 0.5, 1.0), 
@@ -210,6 +223,11 @@ class ColorFinder(cozmo.annotate.Annotator):
     Args:
         robot (cozmo.robot.Robot): instance of the robot connected from run_program.
     '''
+
+    # MODIFICATION FROM ORIGINAL SDK - Originally did not accept color as a parameter.
+    # added the parameter that changes self.color_to_find to search for specific color when
+    # object is created in main.py
+
     def __init__(self, robot: cozmo.robot.Robot, color):
         self.robot = robot
         self.robot.camera.image_stream_enabled = True
@@ -220,6 +238,7 @@ class ColorFinder(cozmo.annotate.Annotator):
         self.robot.add_event_handler(cozmo.world.EvtNewCameraImage, self.on_new_camera_image)
 
         self.color_selector_cube = None # type: LightCube
+        # MODIFCATION FROM ORIGINAL SDK - originally default to yellow.  now initalizes with color passed as string
         self.color_to_find = color
         self.color_to_find_index = POSSIBLE_COLORS_TO_FIND.index(self.color_to_find)
 
@@ -280,9 +299,21 @@ class ColorFinder(cozmo.annotate.Annotator):
             points_seq = (pt1, pt2, pt3, pt4)
             cozmo.annotate.add_polygon_to_image(image, points_seq, 1.0, 'black', 'gold')
 
+
+
+    # MODIFICATION FROM ORIGINAL SDK - repurposed white balance cube to use as a controller for child to get a hint
+
+
     def on_cube_tap(self, evt, obj, **kwargs):
+
+        # randomIndex generated for Cozmo to select a hit from the available String arrays: yellowHints, redHints,
+        # purpleHints, blueHints, greenHints, and orangeHints.
+        # must have same number of hints in each array
+        # FUTURE DEVELOPMENT OPPORTUNITY - Change selection method to random.choice(arrayName).
+        # this change would allow the arrays to not have to be equal number of elements
+
         randomIndex = random.randint(0, 3)
-        print(randomIndex)
+        # print(randomIndex)
         yellowHints = ["A Banana", "A Schoolbus", "A bumblebee", "A Lemon"]
         redHints = ["An Apple", "A Cardinal", "A Firetruck", "A Stop Sign"]
         blueHints = ["The Sky", "Water", "Cookie Monster", "Dory"]
@@ -300,8 +331,9 @@ class ColorFinder(cozmo.annotate.Annotator):
             self.robot.world.image_annotator.annotation_enabled = not self.robot.world.image_annotator.annotation_enabled
         elif obj.object_id == self.white_balance_cube.object_id:
             # below code is an edit to original SDK file.  this cube now offers hint rather then changing white balance
-
+            # selects a random hint. consult comment at start of function for more details
             print("hint cube tapped")
+            # stop Cozmo from executing tasks
             self.robot.abort_all_actions()
             if self.color_to_find == "yellow":
                 self.robot.say_text(yellowHints[randomIndex])
@@ -316,6 +348,7 @@ class ColorFinder(cozmo.annotate.Annotator):
             else:
                 self.robot.say_text(greenHints[randomIndex])
 
+            # restart the process to look around for a color
             self.start_lookaround()
 
             # next line is the original SDK code
@@ -354,11 +387,11 @@ class ColorFinder(cozmo.annotate.Annotator):
             self.abort_actions(self.drive_action)
             self.state = LOOK_AROUND_STATE
 
-    async def white_balance(self):
+    # While not modified, this function is no longer called
+    def white_balance(self):
         print("hint cube tapped")
         self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
         self.look_around_behavior = False
-        await self.robot.say_text("testing").wait_for_completed()
         #image = self.robot.world.latest_image.raw_image
         #self.adjustment = ImageStat.Stat(image).mean
 
@@ -471,6 +504,8 @@ class ColorFinder(cozmo.annotate.Annotator):
 
         if self.should_start_new_action(self.lift_action):
             print("found" + self.color_to_find)
+        # MODIFICATION FROM ORIGINAL SDK - this global variable used to control executing of the run loop to allow for
+        # an exit condition
         global running
         running = False
 
