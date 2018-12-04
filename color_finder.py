@@ -288,7 +288,7 @@ class ColorFinder(cozmo.annotate.Annotator):
         blueHints = ["The Sky", "Water", "Cookie Monster", "Dory"]
         purpleHints = ["A grape", "A plum", "Barney", "Twinky Winky"]
         greenHints = ["A Four leaf Clovor", "Broccoli yum", "A Frog", "A Lime"]
-        orangeHints = ["Cheetos", "A Goldfish", "Nemo", "A Carrort"]
+        orangeHints = ["Cheetos", "A Goldfish", "Nemo", "A Carrot"]
 
 
         '''The blinking white cube switches the viewer between normal mode and pixel mode.
@@ -299,6 +299,7 @@ class ColorFinder(cozmo.annotate.Annotator):
         elif obj.object_id == self.grid_cube.object_id:
             self.robot.world.image_annotator.annotation_enabled = not self.robot.world.image_annotator.annotation_enabled
         elif obj.object_id == self.white_balance_cube.object_id:
+            # below code is an edit to original SDK file.  this cube now offers hint rather then changing white balance
 
             print("hint cube tapped")
             self.robot.abort_all_actions()
@@ -317,7 +318,8 @@ class ColorFinder(cozmo.annotate.Annotator):
 
             self.start_lookaround()
 
-            #self.white_balance()
+            # next line is the original SDK code
+            # self.white_balance()
 
     def toggle_color_to_find(self):
         '''Sets self.color_to_find to the next color in POSSIBLE_COLORS_TO_FIND.'''
