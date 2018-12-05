@@ -82,12 +82,12 @@ map_color_to_light = {
 
 hsv_color_ranges = {
 'red' : (-20.0, 20.0, 0.5, 1.0, 0.5, 1.0), 
-'green' : (90.0, 155.0, 0.5, 1.0, 0.5, 1.0), 
-'blue' : (180.0, 245.0, 0.5, 1.0, 0.5, 1.0), 
+'green' : (90.0, 155.0, 0.5, 1.0, 0.5, 1.0),
+'blue' : (160.0, 245.0, 0.5, 1.0, 0.5, 1.0),
 'yellow' : (40.0, 80.0, 0.5, 1.0, 0.5, 1.0), 
 'white' : (0.0, 360.0, 0.0, 0.2, 0.9, 1.0), 
 'black' : (0.0, 360.0, 0.0, 0.1, 0.0, 0.2),
-'purple' : (260.0, 300, 0.5, 1.0, 0.5, 1.0),
+'purple' : (260.0, 360, 0.5, 1.0, 0.5, 1.0),
 'orange' : (21.0, 39.0, 0.5, 1.0, 0.5, 1.0)
 }
 
@@ -318,8 +318,8 @@ class ColorFinder(cozmo.annotate.Annotator):
         redHints = ["An Apple", "A Cardinal", "A Firetruck", "A Stop Sign"]
         blueHints = ["The Sky", "Water", "Cookie Monster", "Dory"]
         purpleHints = ["A grape", "A plum", "Barney", "Twinky Winky"]
-        greenHints = ["A Four leaf Clovor", "Broccoli yum", "A Frog", "A Lime"]
-        orangeHints = ["Cheetos", "A Goldfish", "Nemo", "A Carrot"]
+        greenHints = ["A Four leaf Clovor", "Broccoli yummy", "A Frog", "A Lime"]
+        orangeHints = ["A Cheetah", "A Goldfish", "Nemo", "A Carrot"]
 
 
         '''The blinking white cube switches the viewer between normal mode and pixel mode.
@@ -335,18 +335,20 @@ class ColorFinder(cozmo.annotate.Annotator):
             print("hint cube tapped")
             # stop Cozmo from executing tasks
             self.robot.abort_all_actions()
+            self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
+
             if self.color_to_find == "yellow":
-                await self.robot.say_text(yellowHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(yellowHints[randomIndex], duration_scalar=1).wait_for_completed()
             elif self.color_to_find == "red":
-                await self.robot.say_text(redHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(redHints[randomIndex], duration_scalar=1).wait_for_completed()
             elif self.color_to_find == "blue":
-                await self.robot.say_text(blueHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(blueHints[randomIndex], duration_scalar=1).wait_for_completed()
             elif self.color_to_find == "purple":
-                await self.robot.say_text(purpleHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(purpleHints[randomIndex], duration_scalar=1).wait_for_completed()
             elif self.color_to_find == "orange":
-                await self.robot.say_text(orangeHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(orangeHints[randomIndex], duration_scalar=1).wait_for_completed()
             else:
-                await self.robot.say_text(greenHints[randomIndex]).wait_for_completed()
+                await self.robot.say_text(greenHints[randomIndex], duration_scalar=1).wait_for_completed()
 
             # restart the process to look around for a color
             await self.start_lookaround()
@@ -596,6 +598,7 @@ class ColorFinder(cozmo.annotate.Annotator):
             self.amount_turned_recently = radians(0)
 
         if running == False:
+            self.robot.abort_all_actions()
             return
 
 

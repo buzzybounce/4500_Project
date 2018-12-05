@@ -98,8 +98,8 @@ each of these lists are needed to control Mode 2 of the program.
 mode 2 uses the index to calculate what color is being looked for.  
 use caution when changing, addeding, or removing colors from this list.  
 '''
-primary_color_list = ['yellow', 'blue', 'red']
-secondary_color_list = ['green', 'orange', 'purple']
+primary_color_list = ["yellow", "blue", "red"]
+secondary_color_list = ["green", "orange", "purple"]
 
 '''
 game_selector = 0 - Cozmo provides two primary colors and user displays 1 secondary color in response
@@ -113,10 +113,10 @@ consulate above list to determine which game to force.  Set to any other value w
 '''
 
 
-game_selector = 1
+# game_selector = -1
 
 # determine which game is going to run
-# game_selector = random.randint(0, 1)
+game_selector = random.randint(0, 1)
 
 
 
@@ -125,6 +125,8 @@ Ecah game mode must be declare as async due to color_finder.py use of async func
 args - cozmo.robot.Robot to pass robot to the function
 '''
 async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
+    await robot.set_head_angle(degrees(80)).wait_for_completed()
+
 
     # determine a random number between 0 and 5 to determine which color Cozmo will speak
     index = random.randint(0, 5)
@@ -168,6 +170,7 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
 
 async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
+    await robot.set_head_angle(degrees(80)).wait_for_completed()
 
 
     # colors_not_different purpose to ensure that Cozmo doesn't select te same primary color for both inputs
@@ -265,9 +268,9 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
 # set to any value other then 1 or 0.
 # it may not be in a workable state as developers continually modified this function to test
 async def test_color_pass(robot: cozmo.robot.Robot):
+    await robot.set_head_angle(degrees(80)).wait_for_completed()
 
-
-    color_finder_game = color_finder.ColorFinder(robot, "purple")
+    color_finder_game = color_finder.ColorFinder(robot, "blue")
     await color_finder_game.run()
     robot.abort_all_actions()
     await robot.say_text("testing").wait_for_completed()
