@@ -87,7 +87,7 @@ hsv_color_ranges = {
 'yellow' : (40.0, 80.0, 0.5, 1.0, 0.5, 1.0), 
 'white' : (0.0, 360.0, 0.0, 0.2, 0.9, 1.0), 
 'black' : (0.0, 360.0, 0.0, 0.1, 0.0, 0.2),
-'purple' : (248.0, 280, 0.5, 1.0, 0.5, 1.0),
+'purple' : (260.0, 300, 0.5, 1.0, 0.5, 1.0),
 'orange' : (21.0, 39.0, 0.5, 1.0, 0.5, 1.0)
 }
 
@@ -304,7 +304,7 @@ class ColorFinder(cozmo.annotate.Annotator):
     # MODIFICATION FROM ORIGINAL SDK - repurposed white balance cube to use as a controller for child to get a hint
 
 
-    def on_cube_tap(self, evt, obj, **kwargs):
+    async def on_cube_tap(self, evt, obj, **kwargs):
 
         # randomIndex generated for Cozmo to select a hit from the available String arrays: yellowHints, redHints,
         # purpleHints, blueHints, greenHints, and orangeHints.
@@ -336,20 +336,20 @@ class ColorFinder(cozmo.annotate.Annotator):
             # stop Cozmo from executing tasks
             self.robot.abort_all_actions()
             if self.color_to_find == "yellow":
-                self.robot.say_text(yellowHints[randomIndex])
+                await self.robot.say_text(yellowHints[randomIndex]).wait_for_completed()
             elif self.color_to_find == "red":
-                self.robot.say_text(redHints[randomIndex])
+                await self.robot.say_text(redHints[randomIndex]).wait_for_completed()
             elif self.color_to_find == "blue":
-                self.robot.say_text(blueHints[randomIndex])
+                await self.robot.say_text(blueHints[randomIndex]).wait_for_completed()
             elif self.color_to_find == "purple":
-                self.robot.say_text(purpleHints[randomIndex])
+                await self.robot.say_text(purpleHints[randomIndex]).wait_for_completed()
             elif self.color_to_find == "orange":
-                self.robot.say_text(orangeHints[randomIndex])
+                await self.robot.say_text(orangeHints[randomIndex]).wait_for_completed()
             else:
-                self.robot.say_text(greenHints[randomIndex])
+                await self.robot.say_text(greenHints[randomIndex]).wait_for_completed()
 
             # restart the process to look around for a color
-            self.start_lookaround()
+            await self.start_lookaround()
 
             # next line is the original SDK code
             # self.white_balance()
@@ -490,8 +490,9 @@ class ColorFinder(cozmo.annotate.Annotator):
                the perceived horizontal distance of the blob from center-screen
         '''
         self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
-        new_head_angle = self.robot.head_angle + amount_to_move_head
-        self.tilt_head_action = self.robot.set_head_angle(new_head_angle, warn_on_clamp=False, in_parallel=True)
+        #  MODIFICATION FROM ORIGINAL SDK - Cozmo no longer looks up and down while in search for a color
+        #new_head_angle = self.robot.head_angle + amount_to_move_head
+        #self.tilt_head_action = self.robot.set_head_angle(new_head_angle, warn_on_clamp=False, in_parallel=True)
         self.rotate_action = self.robot.turn_in_place(amount_to_rotate, in_parallel=True)
         if self.state == FOUND_COLOR_STATE:
             self.amount_turned_recently += amount_to_move_head.abs_value + amount_to_rotate.abs_value
@@ -579,16 +580,23 @@ class ColorFinder(cozmo.annotate.Annotator):
 
 
         # Updates self.state and resets self.amount_turned_recently every 1 second.
+        # MODIFICATION FROM ORIGINAL SDK = while loop would run contiously until an abort signal was dectected.
+        # variable running remains True until Cozmo detects the color passed and changes to False
+        # if False, then run returns giving control back to main.py
         while running:
             await asyncio.sleep(1)
             print(self.color_to_find)
             print(self.state)
+            print(running)
             if self.state == LOOK_AROUND_STATE:
                 await self.start_lookaround()
                 print("In look around state")
             if self.state == FOUND_COLOR_STATE and self.amount_turned_recently < self.moving_threshold:
                 self.state = DRIVING_STATE
             self.amount_turned_recently = radians(0)
+
+        if running == False:
+            return
 
 
 

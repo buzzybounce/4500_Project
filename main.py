@@ -35,6 +35,8 @@ custom markers provided by Anki to accomplish this. -]
 
 During gameplay, child may tap the provided cube to get a hint
 
+When correct color is found, Cozmo gives audio prompt that the user is correct and performs a dance in celebration
+
 Equipment required:
 Cozmo robot, Cozmo Cubes, color cards (any source of color can be used in lieu of the cards), iOS/Andriod phone running
 the Anki application, a PC/Mac to run the software.
@@ -65,7 +67,7 @@ game being played in variable lighting conditions, or issue with the printing of
 
 COZMO looks around for the colors be rotating his head and this can cause him to look at the table.  Depending
 on the color of the table, Cozmo can detect the color that is being searched for in the table. Example - if searching
-for Orange or Red, a brown table may satisfy the search
+for Orange or Red, a brown table may satisfy the search.  Workaround at this time is to execute program on a white board
 
 Lighting plays an important roll in Cozmo's ability to accurately detect colors.  Playing the game in a well lit
 area increases reliability of Cozmo's color detection.
@@ -81,6 +83,7 @@ import color_finder
 import functools
 import sys
 import random
+from cozmo.util import degrees
 
 
 '''
@@ -106,13 +109,14 @@ wheel
 
 '''
 Selecting game mode is a simple random roll of either 0 or 1.  uncomment game_selector = 1 to force a game mode.
-consulate above list to determine which game to force
+consulate above list to determine which game to force.  Set to any other value will start a color test mode.
 '''
 
-# game_selector = 1
+
+game_selector = 1
 
 # determine which game is going to run
-game_selector = random.randint(0, 1)
+# game_selector = random.randint(0, 1)
 
 
 
@@ -136,7 +140,7 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
 
     # prompt for the user that begins the game
-    await robot.say_text("What color is opposite of " + color_list[index]).wait_for_completed()
+    await robot.say_text("What color is opposite of " + color_list[index], duration_scalar=0.5).wait_for_completed()
 
     '''
     color_finder_game object is dependent on the imported color_finder.py file.  
@@ -150,6 +154,16 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
     # execute the color_finder object
     await color_finder_game.run()
+
+    robot.abort_all_actions()
+
+    # added the extra spaced in the first string has the affect of putting more of a delay before Cozmo
+    # speaks the string passed in the array reference.
+    await robot.say_text("Correct         " + color_list[correct_color_to_find] +
+                         "is opposite of " + color_list[index], duration_scalar=0.55).wait_for_completed()
+    robot.abort_all_actions()
+
+    await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
 
 
 
@@ -189,7 +203,7 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
 
     # cozmo will speak the two colors that he is looking forward
     await robot.say_text("What color is made by " + primary_color_list[primary_color_1_selected_index] +
-                         " and" + primary_color_list[primary_color_2_selected_index]).wait_for_completed()
+                         " and" + primary_color_list[primary_color_2_selected_index], duration_scalar=0.5).wait_for_completed()
 
     # print statment for testing
     print("index: " + str(correct_color_to_find_index))
@@ -222,6 +236,18 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
     else:
         color_to_pass = "Green"
 
+    robot.abort_all_actions()
+    # await robot.say_text("testing").wait_for_completed()
+
+    # added the extra spaced in the first string has the affect of putting more of a delay before Cozmo
+    # speaks the string passed in the array reference.
+    await robot.say_text("Correct        " + primary_color_list[primary_color_1_selected_index]
+                         + " and     " + primary_color_list[primary_color_2_selected_index]
+                         + " will make      " + secondary_color_list[correct_color_to_find_index], duration_scalar=0.55).wait_for_completed()
+
+    robot.abort_all_actions()
+    await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
+
 
     #bprint(color_to_pass)
     # print(correct_color_to_find)
@@ -234,10 +260,31 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
 
 # When both colors are detected, Cozmo congratulates the players, speaks their names and preforms a dance
 
+# testing function
+# this function used to experiment with different parameters and options.  only called if game_selector is manually
+# set to any value other then 1 or 0.
+# it may not be in a workable state as developers continually modified this function to test
+async def test_color_pass(robot: cozmo.robot.Robot):
+
+
+    color_finder_game = color_finder.ColorFinder(robot, "purple")
+    await color_finder_game.run()
+    robot.abort_all_actions()
+    await robot.say_text("testing").wait_for_completed()
+    robot.abort_all_actions()
+
+
+    await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
+
+
+
 
 
 # this code is the execution of either of the two game modes depending game_selector
 if game_selector == 1:
     cozmo.run_program(gameTwo_cozmo_program, use_viewer=True)
-else:
+elif game_selector == 0:
     cozmo.run_program(gameOne_cozmo_program, use_viewer=True)
+else:
+    cozmo.run_program(test_color_pass, use_viewer=True)
+
