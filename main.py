@@ -133,6 +133,8 @@ game_selector = random.randint(0, 1)
 Ecah game mode must be declare as async due to custom_color_finder.py use of async functions.
 args - cozmo.robot.Robot to pass robot to the function
 '''
+
+# This function executes the complementary color game
 async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
     # purpose of setting the head angle is so each game starts with the robot looking in the same direction.  80
     # degrees is slightly up from the x plane
@@ -176,12 +178,14 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
     robot.abort_all_actions()
 
-    
+
     # speaks the string passed in the array reference.
     await robot.say_text("Correct" + color_list[correct_color_to_find] +
                          "is opposite of " + color_list[index], duration_scalar=0.80).wait_for_completed()
     robot.abort_all_actions()
 
+
+    # executes a dance.  this is a standard function provided in the import cozmo
     await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
 
 
