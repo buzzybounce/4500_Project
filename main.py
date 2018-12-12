@@ -176,9 +176,9 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
     robot.abort_all_actions()
 
-    # added the extra spaced in the first string has the affect of putting more of a delay before Cozmo
+    
     # speaks the string passed in the array reference.
-    await robot.say_text("Correct         " + color_list[correct_color_to_find] +
+    await robot.say_text("Correct" + color_list[correct_color_to_find] +
                          "is opposite of " + color_list[index], duration_scalar=0.80).wait_for_completed()
     robot.abort_all_actions()
 
