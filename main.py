@@ -6,9 +6,9 @@ Andrew Audrain, Eric Goodwin, Jorge Jones, Nick Wooldridge, RJ Liceralde
 
 Concept:
 This game tests children's understanding and comprehension of the standard, addative color wheel.
-There are two modes to this game.  Each mode uses the file provided by Anki called color_finder.py.  This file has been
+There are two modes to this game.  Each mode uses the file provided by Anki called custom_color_finder.py.   This file has been
 modified to meet the needs of this program and therefore to execute this game, must use the version of the file
-included in this bundle.  Modifications to be documented in color_finder.py
+included in this bundle.  File renamed to custom_color_finder.  Modifications to be documented in custom_color_finder.py
 
 The mode is chosen at random when program is executed.
 
@@ -18,7 +18,7 @@ line-
 Mode 1 - tests children's knowledge of complementary (opposite) colors as defined addative color wheel.
 Mode 2 - tests children's knowledge of combining primary colors to form a secondary color.
 
-Both game modes use the color_finder.py file and both use the cards provided.
+Both game modes use the custom_color_finder.py file and both use the cards provided.
 
 In mode 1, Cozmo speaks one color and asks the user what color is opposite.  Cozmo then drives off the charger in search
 of that color.
@@ -46,10 +46,11 @@ Python running interrupter 3.7, updated Anki application
 
 Files required:
 main.py - execute this file
-color_finder.py
+custom_color_finder.py
 
 Important information regarding cubes:
-Each cube does provide functionality to color_finder.py.
+Each cube does provide functionality to custom_color_finder.py.
+Ability to cycle through colors via cube tabe has been disabled.
 
 DO NOT PROVIDE THESE CUBES TO THE CHILD:
 Cube that lights up in a solid color shows the current color Cozmo is looking for.  When tapped, it changes
@@ -62,7 +63,11 @@ Cube with no lights, when tapped, Cozmo will stop looking for a color, give a hi
 again.
 
 KNOWN ISSUES:
-COZMO currently has difficulty detecting Purple.  Uncertain if it is due to the HSV values set in color_finder.py,
+Because of the look_around function in custom_color_finder.py, these programs must be ran async.  Async is difficult
+to manage the timing of commands and can cause issues.  For example, if the user taps the clue cube rapidily, commands
+get queued up and the robot tries to execute them at the same time.
+
+COZMO currently has difficulty detecting Purple.  Uncertain if it is due to the HSV values set in custom_color_finder.py,
 game being played in variable lighting conditions, or issue with the printing of the test cards.
 
 COZMO looks around for the colors be rotating his head and this can cause him to look at the table.  Depending
@@ -71,25 +76,31 @@ for Orange or Red, a brown table may satisfy the search.  Workaround at this tim
 
 Lighting plays an important roll in Cozmo's ability to accurately detect colors.  Playing the game in a well lit
 area increases reliability of Cozmo's color detection.
+
+Cozmo speech can be difficult to understand.  We attempted various methods such as increasing/decreasing speed of the
+robot voice.  Another option would be to record new sounds or try methods to let sound play through the PC
+
+
+TESTING
+Tests were random under various lighting conditions and was found that light plays a critical factor in the robots
+ability to detect color.
+The brighter cards were easier to get correct and new blue and purple cards have been included from what was shown in
+the class demo. Under tests, these colors were more reliable
+
+
 '''
 
 
-import numpy
 import cozmo
-import time
-import asyncio
-from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
-import color_finder
-import functools
-import sys
+import custom_color_finder
 import random
 from cozmo.util import degrees
 
 
 '''
 color_list order is in order of color wheel going clockwise
-Important - do not change the order of this list.  Mode 1 requires this specific order to correctly calculate
-which complemmentary color will be passed to the color object
+IMPORTANT - do not change the order of this list.  Mode 1 requires this specific order to correctly calculate
+which complimentary color will be passed to the color object
 '''
 color_list = ["yellow", "green", "blue", "purple", "red", "orange"]
 
@@ -111,8 +122,6 @@ wheel
 Selecting game mode is a simple random roll of either 0 or 1.  uncomment game_selector = 1 to force a game mode.
 consulate above list to determine which game to force.  Set to any other value will start a color test mode.
 '''
-
-
 # game_selector = -1
 
 # determine which game is going to run
@@ -121,10 +130,12 @@ game_selector = random.randint(0, 1)
 
 
 '''
-Ecah game mode must be declare as async due to color_finder.py use of async functions.
+Ecah game mode must be declare as async due to custom_color_finder.py use of async functions.
 args - cozmo.robot.Robot to pass robot to the function
 '''
 async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
+    # purpose of setting the head angle is so each game starts with the robot looking in the same direction.  80
+    # degrees is slightly up from the x plane
     await robot.set_head_angle(degrees(80)).wait_for_completed()
 
 
@@ -136,33 +147,39 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
     correct_color_to_find = (index + 3) % len(color_list)
 
+    # print to screen will let the facilitator know what color the robot is looking for
+    print("Color to find is " + color_list[correct_color_to_find])
+
     # these lines used for testing.  allows developers to monitor what colors are being selected
     # print(correct_color_to_find)
     # print(color_list[correct_color_to_find])
 
 
     # prompt for the user that begins the game
+    # purpose of print line is to let the facilator know what color the robot is looking for.
     await robot.say_text("What color is opposite of " + color_list[index], duration_scalar=0.5).wait_for_completed()
 
     '''
-    color_finder_game object is dependent on the imported color_finder.py file.  
+    color_finder_game object is dependent on the imported custom_color_finder.py file.  
     this file is part of the Anki SDK but is modified for this game. 
-    changes made color_finder.py will affect the execution of main.py
-    modifications made have been documented in color_finder.py
+    changes made custom_color_finder.py will affect the execution of main.py
+    modifications made have been documented in custom_color_finder.py
     ARGS - color_list[correct_color_to_find] is a string that is used to initialize the object with the 
     color that Cozmo will search for
     '''
-    color_finder_game = color_finder.ColorFinder(robot, color_list[correct_color_to_find])
+    color_finder_game = custom_color_finder.ColorFinder(robot, color_list[correct_color_to_find])
 
     # execute the color_finder object
     await color_finder_game.run()
+
+    # purpose of this call is to clear out all actions pending on the robot
 
     robot.abort_all_actions()
 
     # added the extra spaced in the first string has the affect of putting more of a delay before Cozmo
     # speaks the string passed in the array reference.
     await robot.say_text("Correct         " + color_list[correct_color_to_find] +
-                         "is opposite of " + color_list[index], duration_scalar=0.55).wait_for_completed()
+                         "is opposite of " + color_list[index], duration_scalar=0.80).wait_for_completed()
     robot.abort_all_actions()
 
     await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
@@ -170,12 +187,14 @@ async def gameOne_cozmo_program(robot: cozmo.robot.Robot):
 
 
 async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
+    # purpose of setting the head angle is so each game starts with the robot looking in the same direction.  80
+    # degrees is slightly up from the x plane
     await robot.set_head_angle(degrees(80)).wait_for_completed()
 
 
     # colors_not_different purpose to ensure that Cozmo doesn't select te same primary color for both inputs
     colors_not_different = True
-    color_to_pass = ""
+    # color_to_pass = ""
 
     # select a random primary color
     primary_color_1_selected_index = random.randint(0, 2)
@@ -203,42 +222,44 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
     # 0 indexing
     correct_color_to_find_index = (primary_color_1_selected_index + primary_color_2_selected_index) - 1
 
+    # print to screen will let the facilitator know what color the robot is looking for
+    print("Color to find is " + secondary_color_list[correct_color_to_find_index])
+
 
     # cozmo will speak the two colors that he is looking forward
     await robot.say_text("What color is made by " + primary_color_list[primary_color_1_selected_index] +
                          " and" + primary_color_list[primary_color_2_selected_index], duration_scalar=0.5).wait_for_completed()
 
-    # print statment for testing
-    print("index: " + str(correct_color_to_find_index))
+    # print statement for testing
+    # print("index: " + str(correct_color_to_find_index))
 
     # declare the object color)_finder_game
     # ARGS - robot, and array color_list and index correct_color_to_find
-    print("i am looking for" + secondary_color_list[correct_color_to_find_index])
 
     '''
-    color_finder_game object is dependent on the imported color_finder.py file.  
+    color_finder_game object is dependent on the imported custom_color_finder.py file.  
     this file is part of the Anki SDK but is modified for this game. 
-    changes made color_finder.py will affect the execution of main.py
-    modifications made have been documented in color_finder.py
+    changes made custom_color_finder.py will affect the execution of main.py
+    modifications made have been documented in custom_color_finder.py
     ARGS - color_list[correct_color_to_find] is a string that is used to initialize the object with the 
     color that Cozmo will search for
     '''
 
-    color_finder_game = color_finder.ColorFinder(robot, secondary_color_list[correct_color_to_find_index])
+    color_finder_game = custom_color_finder.ColorFinder(robot, secondary_color_list[correct_color_to_find_index])
 
 
     # run the color_finder_object
     await color_finder_game.run()
 
     # following code is for development and testing
+    # if correct_color_to_find_index == 1:
+    #    color_to_pass = "Purple"
+    # elif correct_color_to_find_index == 2:
+    #    color_to_pass = "Orange"
+    # else:
+    #    color_to_pass = "Green"
 
-    if correct_color_to_find_index == 1:
-        color_to_pass = "Purple"
-    elif correct_color_to_find_index == 2:
-        color_to_pass = "Orange"
-    else:
-        color_to_pass = "Green"
-
+    # purpose of this call is to clear out all actions pending on the robot
     robot.abort_all_actions()
     # await robot.say_text("testing").wait_for_completed()
 
@@ -248,14 +269,15 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
                          + " and     " + primary_color_list[primary_color_2_selected_index]
                          + " will make      " + secondary_color_list[correct_color_to_find_index], duration_scalar=0.55).wait_for_completed()
 
+    # purpose of this call is to clear out all actions pending on the robot
     robot.abort_all_actions()
+
     await robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
 
 
-    #bprint(color_to_pass)
+    # print(color_to_pass)
     # print(correct_color_to_find)
 
-    # await robot.say_text(color_to_pass + "is correct!  Great job!").wait_for_completed()
 
 
 
@@ -270,10 +292,11 @@ async def gameTwo_cozmo_program(robot: cozmo.robot.Robot):
 async def test_color_pass(robot: cozmo.robot.Robot):
     await robot.set_head_angle(degrees(80)).wait_for_completed()
 
-    color_finder_game = color_finder.ColorFinder(robot, "blue")
+    color_finder_game = custom_color_finder.ColorFinder(robot, "purple")
     await color_finder_game.run()
     robot.abort_all_actions()
     await robot.say_text("testing").wait_for_completed()
+
     robot.abort_all_actions()
 
 

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-# IMPORTANT - THIS FILE IS ORIGINALLY PROVIDED BY ANKI AS PART OF THE STANDARD SDK.  MODIFICATIONS MADE BY
+# !IMPORTANT! - THIS FILE IS ORIGINALLY PROVIDED BY ANKI AS PART OF THE STANDARD SDK.  MODIFICATIONS MADE BY
 # TO FUNCTION WITH THIS PROJECT.  CHANGES MADE DOCUMENTED IN CODE BELOW IS RELEVANT AREAS.
 
 
@@ -25,6 +25,7 @@ Place a tennis ball near Cozmo and see if he can go play with it!
 
 When the program starts, Cozmo will look around for the color yellow.
 Tap the cube illuminated yellow to switch Cozmo's target color between yellow, blue, red, and green.
+ --- THIS FUNCTIONALITY DISABLED FOR CUSTOM_COLOR_FINDER.PY
 Tap the blinking white cube to have the viewer display Cozmo's pixelated camera view.
 '''
 
@@ -238,7 +239,7 @@ class ColorFinder(cozmo.annotate.Annotator):
         self.robot.add_event_handler(cozmo.world.EvtNewCameraImage, self.on_new_camera_image)
 
         self.color_selector_cube = None # type: LightCube
-        # MODIFCATION FROM ORIGINAL SDK - originally default to yellow.  now initalizes with color passed as string
+        # MODIFCATION FROM ORIGINAL SDK - originally default to yellow.  now initializes with color passed as string
         self.color_to_find = color
         self.color_to_find_index = POSSIBLE_COLORS_TO_FIND.index(self.color_to_find)
 
@@ -317,38 +318,47 @@ class ColorFinder(cozmo.annotate.Annotator):
         yellowHints = ["A Banana", "A Schoolbus", "A bumblebee", "A Lemon"]
         redHints = ["An Apple", "A Cardinal", "A Firetruck", "A Stop Sign"]
         blueHints = ["The Sky", "Water", "Cookie Monster", "Dory"]
-        purpleHints = ["A grape", "A plum", "Barney", "Twinky Winky"]
-        greenHints = ["A Four leaf Clovor", "Broccoli yummy", "A Frog", "A Lime"]
+        purpleHints = ["A grape", "A plum", "Barney", "TwinkyWinky"]
+        greenHints = ["Fourleaf Clover", "Broccoli", "A Frog", "A Lime"]
         orangeHints = ["A Cheetah", "A Goldfish", "Nemo", "A Carrot"]
 
 
         '''The blinking white cube switches the viewer between normal mode and pixel mode.
         The other illuminated cube toggles self.color_to_find.       
-        '''    
-        if obj.object_id == self.color_selector_cube.object_id:
-            self.toggle_color_to_find()
-        elif obj.object_id == self.grid_cube.object_id:
+        '''
+
+        # MODIFICATION FROM ORIGINAL SDK - disabled the color rotation cube.  not needed for this project
+        
+        # if obj.object_id == self.color_selector_cube.object_id:
+            # self.toggle_color_to_find()
+        if obj.object_id == self.grid_cube.object_id:
             self.robot.world.image_annotator.annotation_enabled = not self.robot.world.image_annotator.annotation_enabled
         elif obj.object_id == self.white_balance_cube.object_id:
             # below code is an edit to original SDK file.  this cube now offers hint rather then changing white balance
             # selects a random hint. consult comment at start of function for more details
+            # FUTURE DEVELOPMENT OPPORTUNITY - Pressing the cube many times in a row without finishing the say_text
+            # command, can result in unexpected actions by the robot.  Development needed to improve relability of this
+            # function
+
             print("hint cube tapped")
+
             # stop Cozmo from executing tasks
             self.robot.abort_all_actions()
             self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
 
+            # adjust the durat_scalar argument to increase or decrease speed of the robot voice
             if self.color_to_find == "yellow":
-                await self.robot.say_text(yellowHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(yellowHints[randomIndex], duration_scalar=0.75).wait_for_completed()
             elif self.color_to_find == "red":
-                await self.robot.say_text(redHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(redHints[randomIndex], duration_scalar=0.75).wait_for_completed()
             elif self.color_to_find == "blue":
-                await self.robot.say_text(blueHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(blueHints[randomIndex], duration_scalar=0.75).wait_for_completed()
             elif self.color_to_find == "purple":
-                await self.robot.say_text(purpleHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(purpleHints[randomIndex], duration_scalar=0.75).wait_for_completed()
             elif self.color_to_find == "orange":
-                await self.robot.say_text(orangeHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(orangeHints[randomIndex], duration_scalar=0.75).wait_for_completed()
             else:
-                await self.robot.say_text(greenHints[randomIndex], duration_scalar=1).wait_for_completed()
+                await self.robot.say_text(greenHints[randomIndex], duration_scalar=0.75).wait_for_completed()
 
             # restart the process to look around for a color
             await self.start_lookaround()
@@ -391,7 +401,6 @@ class ColorFinder(cozmo.annotate.Annotator):
 
     # While not modified, this function is no longer called
     def white_balance(self):
-        print("hint cube tapped")
         self.abort_actions(self.tilt_head_action, self.rotate_action, self.drive_action)
         self.look_around_behavior = False
         #image = self.robot.world.latest_image.raw_image
